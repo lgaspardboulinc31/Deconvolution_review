@@ -1,0 +1,67 @@
+---
+title: "Data analysis for Deconvolution review"
+output: html_notebook
+---
+
+# Introduction to the deconvolution review
+
+```{r}
+# Library
+library(ggplot2)
+library(ggimage)
+library(readxl)
+library(ggtextures)
+library(magick)
+
+# Color theme: wesanderson for sure
+library(wesanderson)
+```
+
+# Data
+```{r}
+deconvolution_review <- read_xlsx("/Users/lgaspard/Documents/Analysis/deconvolution_review.xlsx")
+deconvolution_review <- deconvolution_review[-5,]
+head(deconvolution_review)
+```
+
+# Cumulative frequency of publication 
+```{r}
+deconvolution_review$year <- sapply(strsplit(deconvolution_review$`Publication date`, split='-'), "[[",2)
+
+ggplot(deconvolution_review, aes(x=as.factor(year))) + geom_histogram(stat="count", fill="#0A9F9D") +
+  xlab("Year of release") + ylab("Number of publications") + theme_classic()
+```
+
+# Language
+
+```{r}
+logo_path <- "/Users/lgaspard/Documents/Literature/Deconvolution_review/img/"
+
+progr <- deconvolution_review[!is.na(deconvolution_review$Programming_lang),]
+
+prog_sum <- as.data.frame(table(progr$Programming_lang))
+colnames(prog_sum) <- c("Lang", "Freq")
+
+data <- tibble(
+  count = prog_sum$Freq,
+  lang = prog_sum$Lang,
+  image = list(
+    image_read(paste0(logo_path,"Python_logo.png")),
+    image_read(paste0(logo_path,"R_logo.png")),
+    image_read(paste0(logo_path,"mixed_logo.png"))
+  )
+)
+
+
+ggplot(data, aes(lang, count, image = image)) +
+  geom_isotype_col(
+    img_width = grid::unit(2, "native"), img_height = NULL,
+    ncol = NA, nrow = 1, hjust = 0, vjust = 0.5
+  ) +
+  coord_flip() + ylab("Number of methods") + xlab("Programming language")+
+  theme_classic()
+
+
+```
+
+
