@@ -12,21 +12,24 @@ library(ggimage)
 library(readxl)
 library(ggtextures)
 library(magick)
-
+library(tibble)
 # Color theme: wesanderson for sure
 library(wesanderson)
 ```
 
 # Data
 ```{r}
-deconvolution_review <- read_xlsx("/Users/lgaspard/Documents/Analysis/deconvolution_review.xlsx")
-deconvolution_review <- deconvolution_review[-5,]
+deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_method_table_harmonisation.csv", sep=";")
+
+#Remove unecessary lines
+deconvolution_review <- deconvolution_review[deconvolution_review$title != "",]
 head(deconvolution_review)
+tail(deconvolution_review)
 ```
 
 # Cumulative frequency of publication 
 ```{r}
-deconvolution_review$year <- sapply(strsplit(deconvolution_review$`Publication date`, split='-'), "[[",2)
+deconvolution_review$year <- paste0("20",sapply(strsplit(deconvolution_review$Publication.date, split='-'), "[[",2))
 
 ggplot(deconvolution_review, aes(x=as.factor(year))) + geom_histogram(stat="count", fill="#0A9F9D") +
   xlab("Year of release") + ylab("Number of publications") + theme_classic()
@@ -37,25 +40,28 @@ ggplot(deconvolution_review, aes(x=as.factor(year))) + geom_histogram(stat="coun
 ```{r}
 logo_path <- "/Users/lgaspard/Documents/Literature/Deconvolution_review/img/"
 
-progr <- deconvolution_review[!is.na(deconvolution_review$Programming_lang),]
+progr <- deconvolution_review[deconvolution_review$Programming_lang %in% c("Python", "R", "Python/R"),]
 
 prog_sum <- as.data.frame(table(progr$Programming_lang))
 colnames(prog_sum) <- c("Lang", "Freq")
+
+# restrict to Python and R at the moment
 
 data <- tibble(
   count = prog_sum$Freq,
   lang = prog_sum$Lang,
   image = list(
     image_read(paste0(logo_path,"Python_logo.png")),
-    image_read(paste0(logo_path,"R_logo.png")),
-    image_read(paste0(logo_path,"mixed_logo.png"))
+    image_read(paste0(logo_path,"mixed_logo.png")),
+    image_read(paste0(logo_path,"R_logo.png"))
+    
   )
 )
 
 
 ggplot(data, aes(lang, count, image = image)) +
   geom_isotype_col(
-    img_width = grid::unit(2, "native"), img_height = NULL,
+    img_width = grid::unit(4, "native"), img_height = NULL,
     ncol = NA, nrow = 1, hjust = 0, vjust = 0.5
   ) +
   coord_flip() + ylab("Number of methods") + xlab("Programming language")+
@@ -63,5 +69,169 @@ ggplot(data, aes(lang, count, image = image)) +
 
 
 ```
+# Publisher
+```{r}
+publish_df <- as.data.frame(table(deconvolution_review$journal))
+publish_df <- publish_df[order(publish_df$Freq),]
+publish_df$Var1 <- factor(publish_df$Var1, levels = publish_df$Var1)
 
+ggplot(publish_df, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identity", fill="#FF0000") +
+  xlab("Number of publication") + ylab("Journals") + theme_classic() + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 3.5)
+```
+
+# Landscape of the existing framework
+
+## Reference use
+```{r fig.height=5, fig.width=10}
+
+#check error
+
+deconvolution_review$Reference.based...Reference.free <- ifelse(deconvolution_review$Reference.based...Reference.free == "Reference-based ", 
+                                                                "Reference-based", deconvolution_review$Reference.based...Reference.free)
+
+framework <- as.data.frame(table(deconvolution_review$Reference.based...Reference.free))
+framework <- framework[order(framework$Freq),]
+framework$Var1 <- factor(framework$Var1, levels = framework$Var1)
+
+ggplot(framework, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identity", fill="#F2AD00") +
+  xlab("Number of method") + ylab("Use a single-cell reference") + theme(axis.text=element_text(size=16)) + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+
+```
+## Subtype of algorithm
+```{r}
+type_alg <- as.data.frame(table(deconvolution_review$Type_alg))
+type_alg <- type_alg[order(type_alg$Freq),]
+type_alg$Var1 <- factor(type_alg$Var1, levels=type_alg$Var1)
+
+ggplot(type_alg, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identity", fill="#F98400") +
+  xlab("Number of method") + ylab("Framework") + theme(axis.text=element_text(size=16)) + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+
+
+```
+```{r}
+class_alg <- deconvolution_review[, c("Method_name","Type_alg")]
+class_alg
+
+result_list <- lapply(unique(class_alg$Type_alg), function(class) {
+  class_alg$Method_name[class_alg$Type_alg == class]
+})
+
+names(result_list) = unique(class_alg$Type_alg)
+
+result_list
+
+paste0(result_list$`Graph convolutional network`, collapse = ", ")
+```
+
+
+## Input data 
+
+### Venn diagram of all inputs
+
+```{r fig.height=10, fig.width=15}
+# Venn diagram with the three possible input: image, ST count and coordinates
+
+input_data <- deconvolution_review[,c("ST_count", "ST_coord", "Image", "Reference.based...Reference.free")]
+# To simplify, I remove the lines where I have optional written 
+
+input_data <-input_data[-c(2,7,26,31,35),]
+
+input_data$group <- paste(input_data$ST_count, input_data$ST_coord, input_data$Image,input_data$Reference.based...Reference.free , sep="_")
+
+# Make the table for the Venn diagram
+table(input_data$group)
+
+
+sets <- list(
+  Use_Counts = which(input_data$ST_count == "Yes"),
+  Use_Coord = which(input_data$ST_coord == "Yes"),
+  Use_Image = which(input_data$Image == "Yes",),
+  Reference_based=which(input_data$Reference.based...Reference.free == "Reference-based" |input_data$Reference.based...Reference.free == "Both", ),
+  Reference_free=which(input_data$Reference.based...Reference.free != "Reference-based" |input_data$Reference.based...Reference.free == "Both", )
+)
+
+library(ggvenn)
+
+ggvenn(sets, c("Reference_based", "Reference_free","Use_Coord", "Use_Image"), show_percentage = F, fill_color = colors_pal[c(3,4,1,2)], text_size=10, set_name_size=5) 
+ggsave("venn_diagram_methods.png", width=15, height=10)
+```
+
+### Coordinates int
+
+```{r}
+coord <- deconvolution_review[,c("Method_name", "ST_coord", "ST_coord_int")]
+
+# filter out yes
+coord_yes <- coord[coord$ST_coord == "Yes",]
+View(coord_yes)
+```
+
+
+## Reference type
+
+```{r}
+type_ref <- table(deconvolution_review$Reference)
+```
+
+
+## Main outputt
+
+```{r}
+outputs <- unlist(lapply(deconvolution_review$Main.output, function(x){return(strsplit(x, split=", "))}))
+
+#Some correction
+outputs <- ifelse(outputs == "Probability", "Probabilities", outputs)
+outputs <- ifelse(outputs == "SIngle-cell gene expression", "Single-cell gene expression", outputs)
+outputs <- outputs[-36]
+
+# Format
+output_df <- as.data.frame(table(outputs))
+output_df <- output_df[order(output_df$Freq),]
+output_df$outputs <- factor(output_df$outputs, levels=output_df$outputs)
+                           
+
+# Make the plot 
+ggplot(output_df, aes(y=outputs, x=Freq)) + geom_histogram(stat="identity", fill=colors_pal[5]) +
+  xlab("Number of method") + ylab("Main output") + theme(axis.text=element_text(size=16)) + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+```
+
+
+
+
+# Validation part 
+
+## Benchmarked methods
+```{r}
+Val_benchmark <- unlist(lapply(deconvolution_review$Val_benchmark, function(x){return(strsplit(x, split=", "))}))
+val_benchmark_df <- as.data.frame(table(Val_benchmark))
+
+#order
+val_benchmark_df <- val_benchmark_df[order(val_benchmark_df$Freq, decreasing = TRUE),]
+val_benchmark_df$val_benchmark_df <- factor(val_benchmark_df$Val_benchmark, levels=val_benchmark_df$Val_benchmark)
+
+# Plot top 10 methods being benchmark against
+ggplot(val_benchmark_df[1:10,], aes(y=Val_benchmark, x=Freq)) + geom_histogram(stat="identity", fill=colors_pal[4]) +
+  xlab("Number of method") + ylab("Top methods being benchmark against") + theme(axis.text=element_text(size=16)) + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+```
+## Real data validation 
+```{r}
+# Test on half of the methods (harmonized by Lucie)
+Val_datasets_list <- unlist(lapply(deconvolution_review$Val_datasets[34:63], function(x){return(strsplit(x, split=", "))}))
+#
+val_data_df <- as.data.frame(table(Val_datasets_list))
+val_data_df$is.Visium <- grepl("Visium",val_data_df$Val_datasets_list)
+val_data_df$is.Slide.seq <- grepl("Slide-seq",val_data_df$Val_datasets_list)
+val_data_df$is.cancer <- grepl("cancer",val_data_df$Val_datasets_list)
+
+table(val_data_df$is.Visium)
+
+# Top Visium slides
+Visium_dataset <- val_data_df[val_data_df$is.Visium == TRUE,]
+Visium_dataset <- Visium_dataset[order(Visium_dataset$Freq),]
+```
+
+## Dowstream tasks
+```{r}
+deconvolution_review$Downstream.analysis
+```
 
