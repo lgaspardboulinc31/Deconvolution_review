@@ -22,7 +22,7 @@ library(wesanderson)
 deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_method_table_harmonisation.csv", sep=";")
 
 #Remove unecessary lines
-deconvolution_review <- deconvolution_review[deconvolution_review$title != "",]
+deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
 head(deconvolution_review)
 tail(deconvolution_review)
 ```
@@ -40,9 +40,9 @@ ggplot(deconvolution_review, aes(x=as.factor(year))) + geom_histogram(stat="coun
 ```{r}
 logo_path <- "/Users/lgaspard/Documents/Literature/Deconvolution_review/img/"
 
-progr <- deconvolution_review[deconvolution_review$Programming_lang %in% c("Python", "R", "Python/R"),]
+progr <- deconvolution_review[deconvolution_review$Programming.language %in% c("Python", "R", "Python/R"),]
 
-prog_sum <- as.data.frame(table(progr$Programming_lang))
+prog_sum <- as.data.frame(table(progr$Programming.language))
 colnames(prog_sum) <- c("Lang", "Freq")
 
 # restrict to Python and R at the moment
@@ -71,7 +71,7 @@ ggplot(data, aes(lang, count, image = image)) +
 ```
 # Publisher
 ```{r}
-publish_df <- as.data.frame(table(deconvolution_review$journal))
+publish_df <- as.data.frame(table(deconvolution_review$Journal))
 publish_df <- publish_df[order(publish_df$Freq),]
 publish_df$Var1 <- factor(publish_df$Var1, levels = publish_df$Var1)
 
@@ -98,29 +98,61 @@ ggplot(framework, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identit
 
 ```
 ## Subtype of algorithm
-```{r}
-type_alg <- as.data.frame(table(deconvolution_review$Type_alg))
-type_alg <- type_alg[order(type_alg$Freq),]
-type_alg$Var1 <- factor(type_alg$Var1, levels=type_alg$Var1)
 
-ggplot(type_alg, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identity", fill="#F98400") +
-  xlab("Number of method") + ylab("Framework") + theme(axis.text=element_text(size=16)) + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+### Bar plot
+```{r fig.height=10, fig.width=12}
+Category_levels <- as.data.frame(table(deconvolution_review$Category))
+Category_levels <- Category_levels[order(Category_levels$Freq),]
+
+Category <- as.data.frame(table(deconvolution_review$Category, deconvolution_review$Reference.based...Reference.free))
+Category <- Category[order(Category$Freq),]
+Category$Var1 <- factor(Category$Var1, levels=Category_levels$Var1)
+
+ggplot(Category, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(stat="identity") +
+  xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=16), axis.title = element_text(size=28))
 
 
 ```
 ```{r}
-class_alg <- deconvolution_review[, c("Method_name","Type_alg")]
+class_alg <- deconvolution_review[, c("Method.name","Category")]
 class_alg
 
-result_list <- lapply(unique(class_alg$Type_alg), function(class) {
-  class_alg$Method_name[class_alg$Type_alg == class]
+result_list <- lapply(unique(class_alg$Category), function(class) {
+  class_alg$Method.name[class_alg$Category == class]
 })
 
-names(result_list) = unique(class_alg$Type_alg)
+names(result_list) = unique(class_alg$Category)
 
 result_list
 
 paste0(result_list$`Graph convolutional network`, collapse = ", ")
+```
+
+### In-depth investigation of framework
+
+#### Regression
+```{r}
+View(deconvolution_review[deconvolution_review$Category == "Regression",])
+
+
+View(deconvolution_review[deconvolution_review$Category == "Bayesian",])
+
+View(deconvolution_review[deconvolution_review$Category == "Deep learning",])
+
+View(deconvolution_review[deconvolution_review$Category == "Matrix factorization",])
+
+View(deconvolution_review[deconvolution_review$Category == "Topic modeling",])
+
+View(deconvolution_review[deconvolution_review$Category == "Deep learning",])
+
+View(deconvolution_review[deconvolution_review$Category == "Optimal transport",])
+
+View(deconvolution_review[deconvolution_review$Category == "Graph convolutional network",])
+
+View(deconvolution_review[deconvolution_review$Category == "Graph convolutional network",])
+
+
+
 ```
 
 
@@ -131,20 +163,20 @@ paste0(result_list$`Graph convolutional network`, collapse = ", ")
 ```{r fig.height=10, fig.width=15}
 # Venn diagram with the three possible input: image, ST count and coordinates
 
-input_data <- deconvolution_review[,c("ST_count", "ST_coord", "Image", "Reference.based...Reference.free")]
+input_data <- deconvolution_review[,c("ST.counts", "ST.coordinates", "Image", "Reference.based...Reference.free")]
 # To simplify, I remove the lines where I have optional written 
 
 input_data <-input_data[-c(2,7,26,31,35),]
 
-input_data$group <- paste(input_data$ST_count, input_data$ST_coord, input_data$Image,input_data$Reference.based...Reference.free , sep="_")
+input_data$group <- paste(input_data$ST.counts, input_data$ST.coordinates, input_data$Image,input_data$Reference.based...Reference.free , sep="_")
 
 # Make the table for the Venn diagram
 table(input_data$group)
 
 
 sets <- list(
-  Use_Counts = which(input_data$ST_count == "Yes"),
-  Use_Coord = which(input_data$ST_coord == "Yes"),
+  Use_Counts = which(input_data$ST.counts == "Yes"),
+  Use_Coord = which(input_data$ST.coordinates == "Yes"),
   Use_Image = which(input_data$Image == "Yes",),
   Reference_based=which(input_data$Reference.based...Reference.free == "Reference-based" |input_data$Reference.based...Reference.free == "Both", ),
   Reference_free=which(input_data$Reference.based...Reference.free != "Reference-based" |input_data$Reference.based...Reference.free == "Both", )
@@ -152,8 +184,12 @@ sets <- list(
 
 library(ggvenn)
 
-ggvenn(sets, c("Reference_based", "Reference_free","Use_Coord", "Use_Image"), show_percentage = F, fill_color = colors_pal[c(3,4,1,2)], text_size=10, set_name_size=5) 
-ggsave("venn_diagram_methods.png", width=15, height=10)
+ggvenn(sets, c("Reference_based","Use_Coord", "Use_Image"), show_percentage = F, fill_color = colors_pal[c(3,1,2)], text_size=10, set_name_size=5) 
+ggsave("venn_diagram_methods_ref_based.svg", width=15, height=10)
+
+ggvenn(sets, c("Reference_free","Use_Coord", "Use_Image"), show_percentage = F, fill_color = colors_pal[c(4,1,2)], text_size=10, set_name_size=5) 
+ggsave("venn_diagram_methods_ref_free.svg", width=15, height=10)
+
 ```
 
 ### Coordinates int
@@ -166,6 +202,15 @@ coord_yes <- coord[coord$ST_coord == "Yes",]
 View(coord_yes)
 ```
 
+### Image int
+
+```{r}
+img <- deconvolution_review[,c("Method_name", "Image", "Image_int")]
+
+# filter out yes
+img_yes <- img[img$Image %in% c("Yes", "Optional"),]
+View(img_yes)
+```
 
 ## Reference type
 
@@ -193,6 +238,10 @@ output_df$outputs <- factor(output_df$outputs, levels=output_df$outputs)
 # Make the plot 
 ggplot(output_df, aes(y=outputs, x=Freq)) + geom_histogram(stat="identity", fill=colors_pal[5]) +
   xlab("Number of method") + ylab("Main output") + theme(axis.text=element_text(size=16)) + geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+```
+## Platform effect
+```{r}
+deconvolution_review$Method_name[deconvolution_review$Batch.platform.correction == "Platform effect"]
 ```
 
 
