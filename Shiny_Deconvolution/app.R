@@ -48,6 +48,12 @@ ui <- fluidPage(
       selectInput("ImgValue", 
                   "Use image:",
                   choices = NULL,  # Choices will be populated in the server
+                  selected = NULL),
+      
+      # User input to filter based on output type
+      selectInput("OutValue", 
+                  "Output type:",
+                  choices = NULL,  # Choices will be populated in the server
                   selected = NULL)
       
       ),
@@ -71,12 +77,14 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # deconvolution table
-  file_path <- "./data/deconvolution_method_table_harmonisation.csv"
+  file_path <- "./data/deconvolution_method_table_harmonisation_utf_8.csv"
   
   # Read the CSV file into a data frame
   data <- reactive({
-    read.csv(file_path, sep = ";")
+    read.csv(file_path, sep = ";" , fileEncoding = "UTF-8") #csv in utf-8 format
   })
+  
+  
   
   # Populate the filter choices based on unique values in the "Occupation" column
   observe({
@@ -92,6 +100,9 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, "ImgValue", 
                       choices = c("All", unique(df$Image)))
+    
+    updateSelectInput(session, "OutValue", 
+                      choices = c("All", unique(df$Main.output)))
   })
   
   # Tailor which columns to show
@@ -118,8 +129,10 @@ server <- function(input, output, session) {
     if (input$ImgValue != "All") {
       df <- df[df$Image == input$ImgValue, ]
     }
+    if (input$OutValue != "All") {
+      df <- df[df$Main.output == input$OutValue, ]
+    }
     df
-    
     selected_columns <- input$columns
     df[, selected_columns, drop = FALSE]
   })
@@ -136,3 +149,7 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+##
+#library(rsconnect)
+# rsconnect::deployApp("/Users/lgaspard/Documents/Literature/Deconvolution_review/Shiny_Deconvolution")
