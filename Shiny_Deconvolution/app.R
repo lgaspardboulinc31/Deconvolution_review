@@ -53,7 +53,8 @@ ui <- fluidPage(
       # User input to filter based on output type
       selectInput("OutValue", 
                   "Output type:",
-                  choices = NULL,  # Choices will be populated in the server
+                  choices = c("All","Proportions","Counts","Mapping", "Single-cell gene expression",
+                              "Probabilities", "Cell location", "Super-pixel gene expression"),  # Choices will be populated in the server
                   selected = NULL)
       
       ),
@@ -77,7 +78,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # deconvolution table
-  file_path <- "./data/deconvolution_method_table_harmonisation_utf_8.csv"
+  file_path <- "./data/deconvolution_method_table.csv"
   
   # Read the CSV file into a data frame
   data <- reactive({
@@ -101,8 +102,8 @@ server <- function(input, output, session) {
     updateSelectInput(session, "ImgValue", 
                       choices = c("All", unique(df$Image)))
     
-    updateSelectInput(session, "OutValue", 
-                      choices = c("All", unique(df$Main.output)))
+    #updateSelectInput(session, "OutValue", 
+                      #choices = c("All", unique(df$Main.output)))
   })
   
   # Tailor which columns to show
@@ -130,7 +131,8 @@ server <- function(input, output, session) {
       df <- df[df$Image == input$ImgValue, ]
     }
     if (input$OutValue != "All") {
-      df <- df[df$Main.output == input$OutValue, ]
+      selected_option <- input$OutValue
+      df <- df[grepl(selected_option, df$Main.output),  ]
     }
     df
     selected_columns <- input$columns
