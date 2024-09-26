@@ -8,10 +8,13 @@
 #
 
 library(shiny)
+library(shinyWidgets)
 library(DT)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  
+  setBackgroundColor("ghostwhite"),
 
   titlePanel("Deconvolution toolbox for spatial transcriptomics"),
   
@@ -78,7 +81,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # deconvolution table
-  file_path <- "./data/deconvolution_method_table.csv"
+  file_path <- "./data/deconvolution_method_table_2.csv"
   
   # Read the CSV file into a data frame
   data <- reactive({

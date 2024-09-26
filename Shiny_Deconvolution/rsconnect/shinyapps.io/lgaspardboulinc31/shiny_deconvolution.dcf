@@ -5,6 +5,6 @@ account: lgaspardboulinc31
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12416129
-bundleId: 8965409
+bundleId: 9087769
 url: https://lgaspardboulinc31.shinyapps.io/shiny_deconvolution/
 version: 1
