@@ -30,7 +30,7 @@ library(wesanderson)
 
 ## Data ---------------------------
 # Data 
-deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_method_table.csv", sep=";")
+deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_table/deconvolution_method_table.csv", sep=";")
 deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
 
 ## Fig A - Cumulative frequency ---------------------------
@@ -208,7 +208,13 @@ ggplot(Img_coord, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(st
 ggsave("./figures/data_synergy_per_framework.svg", width=15, height=8)
 
 
+## Figure G - Output of deconvolution ---------------------------
+
+outputs <-  deconvolution_review[,c("Main.output", "Reference.based...Reference.free", "Method.name")]
+
 ## Table 1- List of methods ---------------------------
+
+### Version 1- Table ---------------------------
 
 selected.cols <- c("Method.name", "Category", "Reference.based...Reference.free", "ST.coordinates", "Image","Main.output", "Programming.language")
 
@@ -218,6 +224,190 @@ table1 <- deconvolution_review[order(deconvolution_review$Reference.based...Refe
 
 # save as excel for futher processing 
 write.csv(table1, "table1_list_methods.csv")
+
+### Version 2- Extended per item ---------------------------
+
+## Modified table 1
+table1$Programming.language[table1$Programming.language == "-"] = "R"
+df <- table1
+# Split the 'Main.output' into lists by separating on ', ' and then trim any leading/trailing spaces
+df_split <- strsplit(as.character(df$Main.output), ",\\s*")
+unique_items <- unique(unlist(df_split)) # Find all unique values in the 'Main.output' column
+for (item in unique_items) {# Create a new column for each unique item and mark "Yes" or "No"
+  df[[item]] <- sapply(df_split, function(x) if (item %in% x) "Yes" else "No")
+}
+
+# Do the same for the code
+# Split the 'Programming.language' into lists by separating on ', ' and then trim any leading/trailing spaces
+df_split <- strsplit(as.character(df$Programming.language), "/\\s*")
+unique_items <- unique(unlist(df_split)) # Find all unique values in the 'Main.output' column
+for (item in unique_items) {# Create a new column for each unique item and mark "Yes" or "No"
+  df[[item]] <- sapply(df_split, function(x) if (item %in% x) "Yes" else "No")
+}
+
+# Do the same for ref free/ ref-based
+df$Reference.based...Reference.free <- ifelse(df$Reference.based...Reference.free == "Both", 
+                                              "Reference-based, Reference-free",
+                                              df$Reference.based...Reference.free)
+# Split the 'Main.output' into lists by separating on ', ' and then trim any leading/trailing spaces
+df_split <- strsplit(as.character(df$Reference.based...Reference.free), ",\\s*")
+unique_items <- unique(unlist(df_split)) # Find all unique values in the 'Main.output' column
+for (item in unique_items) {# Create a new column for each unique item and mark "Yes" or "No"
+  df[[item]] <- sapply(df_split, function(x) if (item %in% x) "Yes" else "No")
+}
+
+# Re-select the columns 
+df <- df%>%
+  arrange(Reference.based...Reference.free, Category, Method.name)
+
+write.csv(df,"./figures/table1_full.csv")
+
+### Version 3 - Visual per item ---------------------------
+
+
+# Reshape the data into long format
+df_long <- df %>%
+  pivot_longer(cols = c(`Reference-based`, `Reference-free` ,Image, ST.coordinates, Counts, Probabilities,
+                        Proportions, `Cell location`, `Single-cell gene expression`,Mapping,`Super-pixel gene expression`,Python,R, MATLAB)
+               , 
+               names_to = "Variable", values_to = "Value")
+
+# Arrange columns in the good order
+
+df_long$Variable <- factor(df_long$Variable, rev(c("Category","Reference-based", "Reference-free","ST.coordinates","Image",
+                                          "Proportions","Counts","Probabilities","Single-cell gene expression","Mapping","Cell location","Super-pixel gene expression",
+                                          "Python","R","MATLAB"
+                                          )))
+
+df_long$Method.name <- factor(df_long$Method.name, levels = method_level)
+
+# Create a plot
+ggplot(df_long, aes(x = Variable, y = Method.name)) +
+  geom_point(data = df_long %>% filter(Value == "Yes"), aes(shape = Value), size = 5) +
+  scale_shape_manual(values = c("X")) +  # Use "X" for Yes
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Item", y = "Main Output", title = "Table1")+ 
+  
+  scale_x_discrete(position = "top")+
+  
+  # Add the columns
+  geom_vline(xintercept=seq(0.5, length(unique(df_long$Variable))+0.5, by = 1), 
+             color = "grey", size = 0.5)+
+  
+  # Add manual horizontal grid lines between method names on y-axis
+  geom_hline(yintercept = seq(0.5, length(unique(df_long$Method.name))+0.5, by = 1), 
+             color = "grey", size = 0.5)+  # Place grid lines between methods
+  
+  # Check theme
+  theme_classic()+theme(
+    axis.text.x = element_text(angle = 45, hjust = 0), 
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+
+ggsave("./figures/table1_visual.png",plot=last_plot(), height = 15, width=5, dpi=300)
+
+df_long <- df_long %>%
+  mutate(Group = case_when(
+    Variable %in% c("Reference-based","Reference-free") ~ "Use of scRNA-seq",
+    Variable %in% c("Image","ST.coordinates") ~ "Extra-modality",
+    Variable %in% c("Counts","Probabilities","Proportions","Cell location", "Single-cell gene expression", "Mapping","Super-pixel gene expression") ~ "Output type",
+    Variable %in% c("Python", "R", "MATLAB") ~ "Programming language"
+  ))
+
+df_long_plot <- df_long[df_long$Value %in% c("Yes","Optional"),]
+
+
+### Version 4 - Visual version enhanced --------------------------------------------
+
+
+svg("./figures/summary_deconvolution_method_heatmap.svg",height = 11, width=30)
+
+ggplot(df_long_plot, aes(x = Method.name, y = Variable, fill = Value)) +
+  geom_tile(color = "white", width = 0.4, height = 0.9) + # Adds a border between tiles
+  scale_fill_manual(values = c("Yes" = "#5fa475", "No" = "#ca5e57", "Optional" ="#9e6ebe", "Both"="#9f9d39")) + # Set Yes to green, No to red
+  theme_minimal() +# Add spacing between the studies (x-axis) and methods (y-axis)
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust=1),
+        axis.text= element_text(size=20)) + # Rotate x-axis labels for better readability
+  labs(title = "",
+       x = "",
+       y = "Method Name",
+       color = "") +
+  scale_x_discrete(labels = c("Single-cell gene expression" = "SCGex", 
+                              "Super-pixel gene expression" = "Super-pixel Gex", 
+                              "Ref_cat" = "Use reference"), position = "bottom")
+
+dev.off()
+
+
+### Version 5- Per item short ---------------------------
+
+table1_cat <- table1
+table1_cat$Ref_cat <- recode(table1_cat$Reference.based...Reference.free, 
+                                                                "Reference-based" = "Yes", 
+                                                                "Reference-free" = "No",
+                                                                "Both" = "Both")
+
+table1_cat <- table1_cat%>%
+  arrange(Ref_cat, ST.coordinates, Image)
+#or 
+#table1_cat <- table1_cat%>%
+ #arrange(Ref_cat, Category, Method.name)
+
+method_level <- table1_cat$Method.name
+
+## Transform table 1 in categorical variables
+
+
+table1_long <- table1_cat %>%
+  pivot_longer(cols = c(Image, ST.coordinates, Ref_cat), 
+               names_to = "Variable", values_to = "Value")
+
+table1_long$Variable <- factor(table1_long$Variable, levels = c("Ref_cat", "ST.coordinates", "Image"))
+table1_long$Method.name <- factor(table1_long$Method.name, levels = method_level)
+table1_long$Value<- ifelse(table1_long$Value =="No ", "No", table1_long$Value)
+table1_long$Value <- factor(table1_long$Value, levels=c("Yes", "No", "Optional", "Both"))
+
+
+svg("./figures/summary_deconvolution_method.svg",height = 20, width=7)
+# Plot the dot plot with separate columns for each variable (Image, ST.coordinates, Reference.based.free)
+ggplot(table1_long, aes(x = Variable, y = Method.name)) +
+  geom_point(aes(color = Value), size = 6, shape = 16) +  # Use dots with colors
+  scale_color_manual(values = c("Yes" = "#66c2a5", "No" = "#fc8d62", "Both" = "#8da0cb", "Optional"="#e78ac3")) +  # Define custom colors
+  labs(title = "",
+       x = "Variables",
+       y = "Method Name",
+       color = "") +
+  scale_x_discrete(labels = c("Image" = "Use image", 
+                              "ST.coordinates" = "Use coordinates", 
+                              "Ref_cat" = "Use reference")) +
+  
+  # Add the columns
+  geom_vline(xintercept = 1.5, color = "grey", linewidth = 0.5) +
+  geom_vline(xintercept = 2.5, color = "grey", linewidth = 0.5) +
+  geom_vline(xintercept = 3.5, color = "grey", linewidth = 0.5) +
+  
+  # Add manual horizontal grid lines between method names on y-axis
+  geom_hline(yintercept = seq(0.5, length(unique(table1_long$Method.name))+0.5, by = 1), 
+             color = "grey", size = 0.5)+  # Place grid lines between methods
+  
+  # Check theme
+  theme_classic() +  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(size = 20, angle = 45, hjust=1),  # Remove x-axis text
+    axis.ticks.x = element_blank(),  # Remove x-axis ticks
+    axis.text.y = element_text(size = 20),  # Retain y-axis method names
+    axis.ticks.y = element_blank(),  # Remove y-axis ticks
+    panel.grid.major = element_blank(),  # Light grid lines for table structure
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    legend.position = "top",# Center title
+    line = element_blank()
+  )
+dev.off()
+ggsave("./figures/summary_deconvolution_method.png", plot=last_plot(), height = 15, width=5, dpi=)
 
 ## Table 2- Data Synergy ---------------------------
 
@@ -258,3 +448,37 @@ table2 <- table2[c("Reference.based...Reference.free","ST.coordinates","Image","
 write.csv(table2, "table2_data_synergy.csv")
 
 
+# Table 3 - Benchmark studies ---------------------------------------------
+
+# REad file
+library(readr)
+V0_review_table_benchmark <- read_delim("~/Desktop/Deconvolution_Review/Figures/tables/V0_review_table_benchmark.csv", 
+                                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+# Step 1: Separate methods into individual rows
+benchmark_long <- V0_review_table_benchmark %>%
+  separate_rows(Methods, sep = ", ") 
+
+# Step 2: Create a pivot table where methods are rows and presence is "Yes"/"No"
+benchmark_long_wide <- benchmark_long %>%
+  mutate(Present = "Yes") %>%
+  pivot_wider(names_from = Study, values_from = Present, values_fill = "No")
+
+df_long_for_plot <- benchmark_long_wide %>%
+  pivot_longer(cols = -Methods, names_to = "Study", values_to = "Present")
+
+#factor methods
+freq_df <- as.data.frame(table(df_long_for_plot$Methods,df_long_for_plot$Present))
+freq_df <- freq_df[freq_df$Var2 == "Yes",]
+freq_df <- freq_df[order(freq_df$Freq),]
+methods_order <- rev(freq_df$Var1)
+
+df_long_for_plot$Methods <- factor(df_long_for_plot$Methods, levels=methods_order)
+
+ggplot(df_long_for_plot, aes(x = Methods, y = Study, fill = Present)) +
+  geom_tile(color = "white", width = 0.9, height = 0.9) + # Adds a border between tiles
+  scale_fill_manual(values = c("Yes" = "darkgreen", "No" = "darkred")) + # Set Yes to green, No to red
+  theme_minimal() +# Add spacing between the studies (x-axis) and methods (y-axis)
+  theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust=1)) + # Rotate x-axis labels for better readability
+  labs(title = "", x = "Methods", y = "Benchmarks")+
+  scale_x_discrete(position = "top")

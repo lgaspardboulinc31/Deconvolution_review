@@ -81,7 +81,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # deconvolution table
-  file_path <- "./data/deconvolution_method_table_2.csv"
+  file_path <- "./data/deconvolution_method_table_vf.csv"
   
   # Read the CSV file into a data frame
   data <- reactive({
@@ -122,16 +122,16 @@ server <- function(input, output, session) {
   filteredData <- reactive({
     df <- data()
     if (input$RefValue != "All") {
-      df <- df[df$Reference.based...Reference.free == input$RefValue, ]
+      df <- df[df$Reference.based...Reference.free %in% c(input$RefValue,"Both"), ]#count with Both
     }
     if (input$CategoryValue != "All") {
       df <- df[df$Category == input$CategoryValue, ]
     }
     if (input$CoordValue != "All") {
-      df <- df[df$ST.coordinates == input$CoordValue, ]
+      df <- df[df$ST.coordinates %in%  c(input$CoordValue,"Optional"), ]#count with optional
     }
     if (input$ImgValue != "All") {
-      df <- df[df$Image == input$ImgValue, ]
+      df <- df[df$Image %in% c(input$ImgValue, "Optional"), ] #count with optional
     }
     if (input$OutValue != "All") {
       selected_option <- input$OutValue
