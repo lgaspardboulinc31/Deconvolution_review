@@ -9,6 +9,8 @@ library(magick)
 library(tibble)
 # Color theme: wesanderson for sure
 library(wesanderson)
+library(dplyr)
+library(tidyr)
 
 ## Table 1- List of methods ---------------------------
 deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_table/deconvolution_method_table_vf.csv", sep=";")
@@ -85,7 +87,7 @@ ref_both <- method_level[1:6]
 ref_free <- tail(method_level,10)
 
 # Reorder table 1 save with new order
-final_method_level <- c(ref_free,ref_both,method_level[7:29],method_level[31:45], method_level[30],method_level[46:53])
+final_method_level <- c(ref_free,ref_both,method_level[7:29], method_level[30], method_level[46:48],method_level[49:53],method_level[31:45])
 
 
 table1_long_plot$Method.name <- factor(table1_long_plot$Method.name, levels =final_method_level)
@@ -119,7 +121,7 @@ ggplot(table1_long_plot, aes(x = Method.name, y = Variable)) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),  # Rotate x-axis labels
-    axis.text = element_text(size = 30),
+    axis.text = element_text(size = 30, colour = "black"),
     axis.text.y = element_text(size=40),
     panel.grid = element_blank()  # Remove default gridlines
   ) +

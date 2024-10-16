@@ -30,16 +30,20 @@ library(wesanderson)
 
 ## Data ---------------------------
 # Data 
-deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_table/deconvolution_method_table.csv", sep=";")
+deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_table/deconvolution_method_table_vf.csv", sep=";")
 deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
 
 ## Fig A - Cumulative frequency ---------------------------
 
 deconvolution_review$year <- paste0("20",sapply(strsplit(deconvolution_review$Publication.date, split='-'), "[[",2))
 
+svg("./figures/number_methods_per_year.svg",height = 10, width=10)
 ggplot(deconvolution_review, aes(x=as.factor(year))) + geom_histogram(stat="count", fill="#0A9F9D") +
-  xlab("Year of release") + ylab("Number of publications") + theme_light()
+  xlab("Year of release") + ylab("Number of publications") + 
+  theme_light()+
+  theme(axis.text = element_text(size=30), axis.title = element_text(size=40))
 
+dev.off()
 ggsave("./figures/cumulative_frequency_publication.svg", width=6, height=5)
 
 
@@ -66,13 +70,18 @@ data <- tibble(
 )
 
 
+svg("./figures/number_methods_per_progr.svg",height = 10, width=10)
+
 ggplot(data, aes(lang, count, image = image)) +
   geom_isotype_col(
     img_width = grid::unit(4, "native"), img_height = NULL,
     ncol = NA, nrow = 1, hjust = 0, vjust = 0.5
   ) +
   coord_flip() + ylab("Number of methods") + xlab("Programming language")+
-  theme_classic()
+  theme_light()+
+  theme(axis.text = element_text(size=30), axis.title = element_text(size=40))
+
+dev.off()
 
 ggsave("./figures/programming_languages.svg", width=10, height=5)
 
@@ -87,9 +96,13 @@ framework <- as.data.frame(table(deconvolution_review$Reference.based...Referenc
 framework <- framework[order(framework$Freq),]
 framework$Var1 <- factor(framework$Var1, levels = framework$Var1)
 
+svg("./figures/number_methods_per_reference.svg",height = 10, width=15)
+
 ggplot(framework, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identity", fill="#F2AD00") +
-  xlab("Number of method") + ylab("Use a single-cell reference") + theme_light() + theme(axis.text=element_text(size=16)) + 
+  xlab("Number of method") + ylab("Use a single-cell reference") + theme_light() + 
+  theme(axis.text = element_text(size=30), axis.title = element_text(size=40))+
   geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
+dev.off()
 
 ggsave("./figures/reference_use.svg", width=10, height=5)
 
@@ -105,10 +118,12 @@ Category <- as.data.frame(table(deconvolution_review$Category, deconvolution_rev
 Category <- Category[order(Category$Freq),]
 Category$Var1 <- factor(Category$Var1, levels=Category_levels$Var1)
 
+svg("./figures/number_methods_per_framework.svg",height = 10, width=15)
 ggplot(Category, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(stat="identity") +
   xlab("Number of method") + ylab("Framework") + scale_fill_manual(values=pal_asteroid[c(2,1,3)])+
-  theme_light() + theme(axis.text=element_text(size=16), axis.title = element_text(size=28))
+  theme_light() + theme(axis.text=element_text(size=30), axis.title = element_text(size=40))
 
+dev.off()
 ggsave("./figures/framework_classification.svg", width=15, height=10)
 
 
