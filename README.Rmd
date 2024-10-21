@@ -1,8 +1,4 @@
----
-title: "The expanding toolbox of deconvolution methods for spatial transcriptomics"
-output: html_document
-date: "2024-10-21"
----
+
+# The expanding toolbox of deconvolution methods for spatial transcriptomics
 
 
-# R Markdown
