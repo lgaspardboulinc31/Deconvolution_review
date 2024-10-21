@@ -1,6 +1,6 @@
 # The expanding toolbox of deconvolution methods for spatial transcriptomics
 
-This repository contains the code used to generate the figures and the application for the review titled "The Expanding Toolbox of Cell-Type Deconvolution for Spatial Transcriptomics."
+This repository contains the code used to generate the figures and the application for the review titled "The expanding toolbox of cell-Type deconvolution methods for spatial transcriptomics."
 
 The manuscript can be found here: 
 
@@ -30,4 +30,4 @@ There are no special installation or execution steps documented at this time. Ho
 
 ## Citation 
 
-Gaspard-Boulinc LC. & Gortana L. *et al.*, **The Expanding Toolbox of Cell-Type Deconvolution for Spatial Transcriptomics**, *in revision*
+Gaspard-Boulinc LC., Gortana L. *et al.*, **The Expanding Toolbox of Cell-Type Deconvolution for Spatial Transcriptomics**, *in revision*
