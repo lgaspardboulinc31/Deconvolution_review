@@ -28,10 +28,10 @@ library(tibble)
 # Color theme: wesanderson for sure
 library(wesanderson)
 library(tidyr)
-
+library(ggpubr)
 ## Data ---------------------------
 # Data 
-deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_table/deconvolution_method_table_vf.csv", sep=";")
+deconvolution_review <- read.csv("./Shiny_Deconvolution/data/deconvolution_table_rebuttal_v3f.csv", sep=";")
 deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
 
 ## Fig A - Cumulative frequency ---------------------------
@@ -196,7 +196,8 @@ Category <- Category[order(Category$Freq),]
 Category$Var1 <- factor(Category$Var1, levels=Category_levels$Var1)
 
 ggplot(Category, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(stat="identity") +
-  xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=15), axis.title = element_text(size=20))
+  xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=15), axis.title = element_text(size=20))+
+  labs(fill = "Reference use")
 
 ggsave("./figures/reference_per_framework.svg", width=15, height=8)
 
@@ -206,8 +207,7 @@ int_data <- as.data.frame(paste0(deconvolution_review$Image,deconvolution_review
 colnames(int_data) <- "int_data"
   
 correspondances <- as.data.frame(unique(int_data))
-correspondances$group <- c("Image and coordinates", "Image and coordinates", "None", 
-                            "Coordinates", "Image", "Both optional", "Image", "Coordinates")
+correspondances$group <- c("None","Image", "Coordinates", "Image and Coordinates", "Image and Coordinates", "Image", "Image and Coordinates")
 
 df_matched <- merge(int_data, correspondances, by.x = "int_data", by.y="int_data")
 
@@ -219,7 +219,8 @@ Img_coord <- Img_coord[order(Img_coord$Freq),]
 Img_coord$Var1 <- factor(Img_coord$Var1, levels=Category_levels$Var1)
 
 ggplot(Img_coord, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(stat="identity") +
-  xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=15), axis.title = element_text(size=20))
+  xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=15), axis.title = element_text(size=20))+
+  labs(fill = "Extra modality")
 
 ggsave("./figures/data_synergy_per_framework.svg", width=15, height=8)
 
@@ -498,3 +499,5 @@ ggplot(df_long_for_plot, aes(x = Methods, y = Study, fill = Present)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust=1)) + # Rotate x-axis labels for better readability
   labs(title = "", x = "Methods", y = "Benchmarks")+
   scale_x_discrete(position = "top")
+
+ggsave("./figures/summary_benchmark.png", plot=last_plot(), height = 5, width=20, dpi=300)
