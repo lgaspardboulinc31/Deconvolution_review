@@ -492,12 +492,17 @@ methods_order <- rev(freq_df$Var1)
 
 df_long_for_plot$Methods <- factor(df_long_for_plot$Methods, levels=methods_order)
 
+pal_benchmark <- c(wes_palette("Royal1")[2], wes_palette("Royal2")[5])
+
+svg("./figures/benchmark_studies.svg",height = 5, width=20)
 ggplot(df_long_for_plot, aes(x = Methods, y = Study, fill = Present)) +
   geom_tile(color = "white", width = 0.9, height = 0.9) + # Adds a border between tiles
-  scale_fill_manual(values = c("Yes" = "forestgreen", "No" = "red2")) + # Set Yes to green, No to red
+  scale_fill_manual(values = c("Yes" = "#74A089", "No" = "#C93312")) + # Set Yes to green, No to red
   theme_minimal() +# Add spacing between the studies (x-axis) and methods (y-axis)
-  theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust=1)) + # Rotate x-axis labels for better readability
+  theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust=1, size = 20),
+        axis.text.y=element_text(size=15)) + # Rotate x-axis labels for better readability
   labs(title = "", x = "Methods", y = "Benchmarks")+
   scale_x_discrete(position = "top")
+dev.off()
 
 ggsave("./figures/summary_benchmark.png", plot=last_plot(), height = 5, width=20, dpi=300)
