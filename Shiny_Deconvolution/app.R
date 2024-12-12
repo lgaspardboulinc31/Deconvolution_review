@@ -23,6 +23,9 @@ ui <- fluidPage(
     Use this interactive table to delve deeper into the nuances of each method and enhance your understanding of the review's content.",
     class = "intro-paragraph"
   ),
+  #p("Interested to update the table? Please send us your suggestion at lucie.gaspard-boulinc[at]curie.fr and luca.gortana[at]curie.fr with all the informations.",
+   # class = "intro-paragraph"
+  #),
   sidebarLayout(
     sidebarPanel(
       
@@ -57,10 +60,16 @@ ui <- fluidPage(
       selectInput("OutValue", 
                   "Output type:",
                   choices = c("All","Proportions","Counts","Mapping", "Single-cell gene expression",
-                              "Probabilities", "Cell location", "Super-pixel gene expression"),  # Choices will be populated in the server
-                  selected = NULL)
+                              "Probabilities", "Cell location", "Super-pixel gene expression"),  # 
+                  selected = NULL),
       
+      # User input to filter based on Programming languages
+      selectInput("ProgrValue", 
+                  "Programming language:",
+                  choices = c("All","R","Python","MATLAB"),  # Unique items
+                  selected = NULL)
       ),
+      
       
       div(
         style = "margin-top: 20px; padding: 10px; border-top: 2px solid #007bff; border-radius: 5px;",
@@ -81,7 +90,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # deconvolution table
-  file_path <- "./data/deconvolution_method_table_vf.csv"
+  file_path <- "./data/deconvolution_table_rebuttal_v3f.csv"
   
   # Read the CSV file into a data frame
   data <- reactive({
@@ -105,8 +114,6 @@ server <- function(input, output, session) {
     updateSelectInput(session, "ImgValue", 
                       choices = c("All", unique(df$Image)))
     
-    #updateSelectInput(session, "OutValue", 
-                      #choices = c("All", unique(df$Main.output)))
   })
   
   # Tailor which columns to show
@@ -114,7 +121,8 @@ server <- function(input, output, session) {
     df <- data()
     checkboxGroupInput("columns", "Select columns to display:",
                        choices = colnames(df),
-                       selected = c("Method.name", "Reference.based...Reference.free", "ST.coordinates", "Image", "Code"))
+                       selected = c("Method.name", "Reference.based...Reference.free", "ST.coordinates", "Image",
+                                    "Programming.language","Code"))
   })
   
   
@@ -137,6 +145,13 @@ server <- function(input, output, session) {
       selected_option <- input$OutValue
       df <- df[grepl(selected_option, df$Main.output),  ]
     }
+    
+    if (input$ProgrValue != "All") {
+      selected_option <- input$ProgrValue
+      df <- df[grepl(selected_option, df$Programming.language),  ]
+    }
+    
+    
     df
     selected_columns <- input$columns
     df[, selected_columns, drop = FALSE]
