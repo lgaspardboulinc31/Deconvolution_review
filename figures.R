@@ -27,6 +27,7 @@ library(magick)
 library(tibble)
 # Color theme: wesanderson for sure
 library(wesanderson)
+library(tidyr)
 
 ## Data ---------------------------
 # Data 
@@ -492,7 +493,7 @@ df_long_for_plot$Methods <- factor(df_long_for_plot$Methods, levels=methods_orde
 
 ggplot(df_long_for_plot, aes(x = Methods, y = Study, fill = Present)) +
   geom_tile(color = "white", width = 0.9, height = 0.9) + # Adds a border between tiles
-  scale_fill_manual(values = c("Yes" = "darkgreen", "No" = "darkred")) + # Set Yes to green, No to red
+  scale_fill_manual(values = c("Yes" = "forestgreen", "No" = "red2")) + # Set Yes to green, No to red
   theme_minimal() +# Add spacing between the studies (x-axis) and methods (y-axis)
   theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust=1)) + # Rotate x-axis labels for better readability
   labs(title = "", x = "Methods", y = "Benchmarks")+

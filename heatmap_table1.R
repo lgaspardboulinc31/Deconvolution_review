@@ -13,9 +13,11 @@ library(dplyr)
 library(tidyr)
 
 ## Table 1- List of methods ---------------------------
-deconvolution_review <- read.csv("~/Documents/Literature/Deconvolution_review/deconvolution_table/deconvolution_method_table_vf.csv", sep=";")
+deconvolution_review <- read.csv("./data/deconvolution_table_rebuttal_vf.csv", sep=";")
 deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
 
+## Remove TESLA
+deconvolution_review <- deconvolution_review[-11,]
 ### Version 1- Table ---------------------------
 
 selected.cols <- c("Method.name", "Category", "Reference.based...Reference.free", "ST.coordinates", "Image","Main.output", "Programming.language")
@@ -60,6 +62,18 @@ for (item in unique_items) {# Create a new column for each unique item and mark 
   table1_split[[item]] <- sapply(df_split, function(x) if (item %in% x) "Yes" else "No")
 }
 
+# Add the benchmark columns
+library(readr)
+V0_review_table_benchmark <- read_delim("~/Desktop/Deconvolution_Review/Figures/tables/V0_review_table_benchmark.csv", 
+                                        delim = ";", escape_double = FALSE, trim_ws = TRUE)
+benchmark_long <- V0_review_table_benchmark %>%
+  separate_rows(Methods, sep = ", ") 
+
+methods_in_benchmark <- unique(benchmark_long$Methods)
+
+table1_split$Benchmark <- ifelse(table1_split$Method.name %in% methods_in_benchmark, "Yes", "No")
+
+
 ## Pivot table
 table1_long <- table1_split %>%
   pivot_longer(cols = -Method.name,
@@ -72,30 +86,38 @@ table1_long_plot <- table1_long[table1_long$Value %in% c("Yes", "Optional"),]
 ref_order <- c("Reference-based","Reference-free")
 category_order <- unique(table1$Category)
 output_order <- unique(unlist(strsplit(table1$Main.output, split = ",\\s*")))
+output_order <- c("Single-cell gene expression","Cell location","Mapping","Probabilities","Counts","Proportions")
 progr_order <- unique(unlist(strsplit(table1$Programming.language, split = "/\\s*")))
 
 table1_long_plot$Variable <- factor(table1_long_plot$Variable,
-                                    levels = rev(c(ref_order, "ST.coordinates", "Image", progr_order,output_order,category_order)))
+                                    levels = rev(c(ref_order, "ST.coordinates", "Image", progr_order,rev(output_order),category_order, "Benchmark")))
 
 ## Order rows
 
 table1_save <- table1_save%>%
   arrange(Reference.based...Reference.free, ST.coordinates, Image)
 
+
+
 method_level <- table1_save$Method.name #first order, except I want to put "Both" in between
 ref_both <- method_level[1:6]
 ref_free <- tail(method_level,10)
 
 # Reorder table 1 save with new order
-final_method_level <- c(ref_free,ref_both,method_level[7:29], method_level[30], method_level[46:48],method_level[49:53],method_level[31:45])
+#final_method_level <- c(ref_free,ref_both,method_level[7:29], method_level[30], method_level[46:48],method_level[49:53],method_level[31:45])
 
+final_method_level <- c(ref_free,ref_both, method_level[7:57])
+final_method_level_2 <- c(final_method_level[1:38], final_method_level[40:41],final_method_level[39],final_method_level[42], final_method_level[60:67],
+                          final_method_level[43:59])
 
-table1_long_plot$Method.name <- factor(table1_long_plot$Method.name, levels =final_method_level)
+table1_long_plot$Method.name <- factor(table1_long_plot$Method.name, levels =final_method_level_2)
+
+# Add the benchmark columns
 
 
 # Make the plot
 
-svg("./figures/summary_deconvolution_method_heatmap_2.svg",height = 23, width=60)
+svg("~/Documents/Literature/Deconvolution_review/figures/summary_deconvolution_method_heatmap_rebuttal.svg",height = 23, width=65)
 
 # Base plot with squares around the tiles
 ggplot(table1_long_plot, aes(x = Method.name, y = Variable)) +
