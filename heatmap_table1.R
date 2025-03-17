@@ -4,7 +4,7 @@
 library(ggplot2)
 library(ggimage)
 library(readxl)
-library(ggtextures)
+#library(ggtextures)
 library(magick)
 library(tibble)
 # Color theme: wesanderson for sure
@@ -13,23 +13,24 @@ library(dplyr)
 library(tidyr)
 
 ## Table 1- List of methods ---------------------------
-deconvolution_review <- read.csv("./data/deconvolution_table_rebuttal_vf.csv", sep=";")
+deconvolution_review <- read.csv("./data/deconvolution_methods_v4.csv", sep=";")
 deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
 
 ## Remove TESLA
 deconvolution_review <- deconvolution_review[-11,]
+
 ### Version 1- Table ---------------------------
 
-selected.cols <- c("Method.name", "Category", "Reference.based...Reference.free", "ST.coordinates", "Image","Main.output", "Programming.language")
+selected.cols <- c("Method.name", "Category", "Reference.based_Reference.free", "ST.coordinates", "Image","Main.output", "Programming.language")
 
 # order by framework and 
-table1 <- deconvolution_review[order(deconvolution_review$Reference.based...Reference.free,deconvolution_review$Category,deconvolution_review$Method.name), selected.cols]
+table1 <- deconvolution_review[order(deconvolution_review$Reference.based_Reference.free,deconvolution_review$Category,deconvolution_review$Method.name), selected.cols]
 
 table1_save <- table1
 # Change Optional to Yes,No 
 ## Modified table 1
 table1$Programming.language[table1$Programming.language == "-"] = "R"
-table1$Reference.based...Reference.free[table1$Reference.based...Reference.free == "Both"] = "Reference-based, Reference-free"
+table1$Reference.based...Reference.free[table1$Reference.based_Reference.free == "Both"] = "Reference-based, Reference-free"
 #table1$ST.coordinates[table1$ST.coordinates == "Optional"] = "Yes, No"
 
 ##
@@ -49,7 +50,7 @@ split_df <- function(df, col){
 
 ## Need to split Reference.based...Reference.free,ST.coordinates,Image and Main.output
 
-table1_split <- split_df(table1, "Reference.based...Reference.free")
+table1_split <- split_df(table1, "Reference.based_Reference.free")
 #table1_split <- split_df(table1_split, "ST.coordinates")
 #table1_split <- split_df(table1_split, "Image")
 table1_split <- split_df(table1_split, "Main.output")
@@ -95,7 +96,7 @@ table1_long_plot$Variable <- factor(table1_long_plot$Variable,
 ## Order rows
 
 table1_save <- table1_save%>%
-  arrange(Reference.based...Reference.free, ST.coordinates, Image)
+  arrange(Reference.based_Reference.free, ST.coordinates, Image)
 
 
 

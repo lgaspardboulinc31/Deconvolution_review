@@ -1,4 +1,4 @@
-"","Method.name","Category","Reference.based...Reference.free","ST.coordinates","Image","Main.output","Programming.language","Counts","Probabilities","Proportions","Cell location","Single-cell gene expression","Mapping","Python","R","MATLAB","Reference-based","Reference-free"
+"","Method.name","Category","Reference.based_Reference.free","ST.coordinates","Image","Main.output","Programming.language","Counts","Probabilities","Proportions","Cell location","Single-cell gene expression","Mapping","Python","R","MATLAB","Reference-based","Reference-free"
 "1","Cell2location","Bayesian","Reference-based","Yes","Optional","Counts","Python","Yes","No","No","No","No","No","Yes","No","No","Yes","No"
 "2","DestVI","Bayesian","Reference-based","No","No","Proportions","Python/R","No","No","Yes","No","No","No","Yes","Yes","No","Yes","No"
 "3","GIST","Bayesian","Reference-based","No","Yes","Proportions","R","No","No","Yes","No","No","No","No","Yes","No","Yes","No"

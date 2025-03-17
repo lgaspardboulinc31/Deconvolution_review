@@ -18,6 +18,7 @@
 ##
 ## ---------------------------
 
+
 ## Library ---------------------------
 library(ggplot2)
 library(ggimage)
@@ -31,21 +32,25 @@ library(tidyr)
 library(ggpubr)
 ## Data ---------------------------
 # Data 
-deconvolution_review <- read.csv("./Shiny_Deconvolution/data/deconvolution_table_rebuttal_v3f.csv", sep=";")
+deconvolution_review <- read.csv("../Shiny_Deconvolution/data/deconvolution_methods_v4.csv", sep=";")
 deconvolution_review <- deconvolution_review[deconvolution_review$Title != "",]
+
+## Remove TESLA
+deconvolution_review <- deconvolution_review[-11,]
+
 
 ## Fig A - Cumulative frequency ---------------------------
 
 deconvolution_review$year <- paste0("20",sapply(strsplit(deconvolution_review$Publication.date, split='-'), "[[",2))
 
-svg("./figures/number_methods_per_year.svg",height = 10, width=10)
+svg("../figures/number_methods_per_year.svg",height = 10, width=10)
 ggplot(deconvolution_review, aes(x=as.factor(year))) + geom_histogram(stat="count", fill="#0A9F9D") +
   xlab("Year of release") + ylab("Number of publications") + 
   theme_light()+
   theme(axis.text = element_text(size=30), axis.title = element_text(size=40))
 
 dev.off()
-ggsave("./figures/cumulative_frequency_publication.svg", width=6, height=5)
+ggsave("../figures/cumulative_frequency_publication.svg", width=6, height=5)
 
 
 ## Fig B - Programming languages ---------------------------
@@ -71,7 +76,7 @@ data <- tibble(
 )
 
 
-svg("./figures/number_methods_per_progr.svg",height = 10, width=10)
+svg("../figures/number_methods_per_progr.svg",height = 10, width=10)
 
 ggplot(data, aes(lang, count, image = image)) +
   geom_isotype_col(
@@ -84,20 +89,20 @@ ggplot(data, aes(lang, count, image = image)) +
 
 dev.off()
 
-ggsave("./figures/programming_languages.svg", width=10, height=5)
+ggsave("../figures/programming_languages.svg", width=10, height=5)
 
 
 
 ## Fig C - Reference free or based ---------------------------
 
-deconvolution_review$Reference.based...Reference.free <- ifelse(deconvolution_review$Reference.based...Reference.free == "Reference-based ", 
-                                                                "Reference-based", deconvolution_review$Reference.based...Reference.free)
+deconvolution_review$Reference.based_Reference.free <- ifelse(deconvolution_review$Reference.based_Reference.free == "Reference-based ", 
+                                                                "Reference-based", deconvolution_review$Reference.based_Reference.free)
 
-framework <- as.data.frame(table(deconvolution_review$Reference.based...Reference.free))
+framework <- as.data.frame(table(deconvolution_review$Reference.based_Reference.free))
 framework <- framework[order(framework$Freq),]
 framework$Var1 <- factor(framework$Var1, levels = framework$Var1)
 
-svg("./figures/number_methods_per_reference.svg",height = 10, width=15)
+svg("../figures/number_methods_per_reference.svg",height = 10, width=15)
 
 ggplot(framework, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identity", fill="#F2AD00") +
   xlab("Number of method") + ylab("Use a single-cell reference") + theme_light() + 
@@ -105,7 +110,7 @@ ggplot(framework, aes(y=as.factor(Var1), x=Freq)) + geom_histogram(stat="identit
   geom_text(aes(label = Freq), vjust = 0.5, hjust=-0.5,size = 5)
 dev.off()
 
-ggsave("./figures/reference_use.svg", width=10, height=5)
+ggsave("../figures/reference_use.svg", width=10, height=5)
 
 
 ## Fig D- Frameworks ---------------------------
@@ -115,36 +120,36 @@ pal_asteroid <- wes_palette("AsteroidCity1",5,"discrete")
 Category_levels <- as.data.frame(table(deconvolution_review$Category))
 Category_levels <- Category_levels[order(Category_levels$Freq),]
 
-Category <- as.data.frame(table(deconvolution_review$Category, deconvolution_review$Reference.based...Reference.free))
+Category <- as.data.frame(table(deconvolution_review$Category, deconvolution_review$Reference.based_Reference.free))
 Category <- Category[order(Category$Freq),]
 Category$Var1 <- factor(Category$Var1, levels=Category_levels$Var1)
 
-svg("./figures/number_methods_per_framework.svg",height = 10, width=15)
+svg("../figures/number_methods_per_framework.svg",height = 10, width=15)
 ggplot(Category, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(stat="identity") +
   xlab("Number of method") + ylab("Framework") + scale_fill_manual(values=pal_asteroid[c(2,1,3)])+
   theme_light() + theme(axis.text=element_text(size=30), axis.title = element_text(size=40))
 
 dev.off()
-ggsave("./figures/framework_classification.svg", width=15, height=10)
+ggsave("../figures/framework_classification.svg", width=15, height=10)
 
 
 ## Fig E- Data synergy in deconvolution ---------------------------
 colors_pal <- wesanderson::wes_palette("AsteroidCity1",5,"discrete")
 
-input_data <- deconvolution_review[,c("ST.counts", "ST.coordinates", "Image", "Reference.based...Reference.free", "Method.name")]
+input_data <- deconvolution_review[,c("ST.counts", "ST.coordinates", "Image", "Reference.based_Reference.free", "Method.name")]
 
 # I split ref-based and ref-free alg. to make the Venn diagram 
 
-input_data_ref <- input_data[input_data$Reference.based...Reference.free %in% c("Reference-based","Both"),]
-input_data_free <- input_data[!input_data$Reference.based...Reference.free %in% c("Reference-based", "Both"),]
+input_data_ref <- input_data[input_data$Reference.based_Reference.free %in% c("Reference-based","Both"),]
+input_data_free <- input_data[!input_data$Reference.based_Reference.free %in% c("Reference-based", "Both"),]
 
 # function
 get_sets <- function(df, ref_type){
   return(list(
     `Use Coordinates` = which(df$ST.coordinates == "Yes"),
     `Use Image` = which(df$Image == "Yes",),
-    `Use scRNA-seq` = which(df$Reference.based...Reference.free %in% ref_type),
-    `No scRNA-seq` =which(!df$Reference.based...Reference.free %in% ref_type)))
+    `Use scRNA-seq` = which(df$Reference.based_Reference.free %in% ref_type),
+    `No scRNA-seq` =which(!df$Reference.based_Reference.free %in% ref_type)))
   
 }
 
@@ -156,10 +161,10 @@ sets_free <- get_sets(input_data_free, c("Reference-free"))#,"Both"))
 ## As Venn diagram
 library(ggvenn)
 ggvenn(sets_ref, c("Reference","Use_Coord", "Use_Image"), show_percentage = F, fill_color = colors_pal[c(3,1,2)], text_size=10, set_name_size=5) 
-ggsave("./figures/venn_diagram_methods_ref_based.svg", width=15, height=10)
+ggsave("../figures/venn_diagram_methods_ref_based.svg", width=15, height=10)
 
 ggvenn(sets_free, c("Reference","Use_Coord", "Use_Image"), show_percentage = F, fill_color = colors_pal[c(4,1,2)], text_size=10, set_name_size=5) 
-ggsave("./figures/venn_diagram_methods_ref_free.svg", width=15, height=10)
+ggsave("../figures/venn_diagram_methods_ref_free.svg", width=15, height=10)
 
 ## As Upset plot
 sets <- get_sets(input_data, c("Reference-based","Both"))
@@ -176,7 +181,7 @@ sets_test <- c(sets,split_data)
 upset_list <- list()
 for (set_name in names(split_data)){
   # select only Bayesian methods
-  input_data_test <- deconvolution_review[deconvolution_review$Category == set_name,c("ST.counts", "ST.coordinates", "Image", "Reference.based...Reference.free", "Method.name")]
+  input_data_test <- deconvolution_review[deconvolution_review$Category == set_name,c("ST.counts", "ST.coordinates", "Image", "Reference.based_Reference.free", "Method.name")]
   # get sets
   sets <- get_sets(input_data_test, c("Reference-based","Both"))
   # subset 
@@ -191,7 +196,7 @@ ggarrange(plotlist=upset_list, ncol=4, nrow=4)
 Category_levels <- as.data.frame(table(deconvolution_review$Category))
 Category_levels <- Category_levels[order(Category_levels$Freq),]
 
-Category <- as.data.frame(table(deconvolution_review$Category, deconvolution_review$Reference.based...Reference.free))
+Category <- as.data.frame(table(deconvolution_review$Category, deconvolution_review$Reference.based_Reference.free))
 Category <- Category[order(Category$Freq),]
 Category$Var1 <- factor(Category$Var1, levels=Category_levels$Var1)
 
@@ -199,7 +204,7 @@ ggplot(Category, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(sta
   xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=15), axis.title = element_text(size=20))+
   labs(fill = "Reference use")
 
-ggsave("./figures/reference_per_framework.svg", width=15, height=8)
+ggsave("../figures/reference_per_framework.svg", width=15, height=8)
 
 
 ## Image and Coordinate int
@@ -222,21 +227,21 @@ ggplot(Img_coord, aes(y=as.factor(Var1), x=Freq, fill=Var2)) + geom_histogram(st
   xlab("Number of method") + ylab("Framework") + theme_light() + theme(axis.text=element_text(size=15), axis.title = element_text(size=20))+
   labs(fill = "Extra modality")
 
-ggsave("./figures/data_synergy_per_framework.svg", width=15, height=8)
+ggsave("../figures/data_synergy_per_framework.svg", width=15, height=8)
 
 
 ## Figure G - Output of deconvolution ---------------------------
 
-outputs <-  deconvolution_review[,c("Main.output", "Reference.based...Reference.free", "Method.name")]
+outputs <-  deconvolution_review[,c("Main.output", "Reference.based_Reference.free", "Method.name")]
 
 ## Table 1- List of methods ---------------------------
 
 ### Version 1- Table ---------------------------
 
-selected.cols <- c("Method.name", "Category", "Reference.based...Reference.free", "ST.coordinates", "Image","Main.output", "Programming.language")
+selected.cols <- c("Method.name", "Category", "Reference.based_Reference.free", "ST.coordinates", "Image","Main.output", "Programming.language")
 
 # order by framework and 
-table1 <- deconvolution_review[order(deconvolution_review$Reference.based...Reference.free,deconvolution_review$Category,deconvolution_review$Method.name), selected.cols]
+table1 <- deconvolution_review[order(deconvolution_review$Reference.based_Reference.free,deconvolution_review$Category,deconvolution_review$Method.name), selected.cols]
 
 
 # save as excel for futher processing 
@@ -263,11 +268,11 @@ for (item in unique_items) {# Create a new column for each unique item and mark 
 }
 
 # Do the same for ref free/ ref-based
-df$Reference.based...Reference.free <- ifelse(df$Reference.based...Reference.free == "Both", 
+df$Reference.based_Reference.free <- ifelse(df$Reference.based_Reference.free == "Both", 
                                               "Reference-based, Reference-free",
-                                              df$Reference.based...Reference.free)
+                                              df$Reference.based_Reference.free)
 # Split the 'Main.output' into lists by separating on ', ' and then trim any leading/trailing spaces
-df_split <- strsplit(as.character(df$Reference.based...Reference.free), ",\\s*")
+df_split <- strsplit(as.character(df$Reference.based_Reference.free), ",\\s*")
 unique_items <- unique(unlist(df_split)) # Find all unique values in the 'Main.output' column
 for (item in unique_items) {# Create a new column for each unique item and mark "Yes" or "No"
   df[[item]] <- sapply(df_split, function(x) if (item %in% x) "Yes" else "No")
@@ -275,9 +280,9 @@ for (item in unique_items) {# Create a new column for each unique item and mark 
 
 # Re-select the columns 
 df <- df%>%
-  arrange(Reference.based...Reference.free, Category, Method.name)
+  arrange(Reference.based_Reference.free, Category, Method.name)
 
-write.csv(df,"./figures/table1_full.csv")
+write.csv(df,"../figures/table1_full.csv")
 
 ### Version 3 - Visual per item ---------------------------
 
@@ -285,7 +290,7 @@ write.csv(df,"./figures/table1_full.csv")
 # Reshape the data into long format
 df_long <- df %>%
   pivot_longer(cols = c(`Reference-based`, `Reference-free` ,Image, ST.coordinates, Counts, Probabilities,
-                        Proportions, `Cell location`, `Single-cell gene expression`,Mapping,`Super-pixel gene expression`,Python,R, MATLAB)
+                        Proportions, `Cell location`, `Single-cell gene expression`,Mapping,Python,R, MATLAB)
                , 
                names_to = "Variable", values_to = "Value")
 
@@ -322,7 +327,7 @@ ggplot(df_long, aes(x = Variable, y = Method.name)) +
     axis.ticks = element_blank(),
     axis.line = element_blank())
 
-ggsave("./figures/table1_visual.png",plot=last_plot(), height = 15, width=5, dpi=300)
+ggsave("../figures/table1_visual.png",plot=last_plot(), height = 15, width=5, dpi=300)
 
 df_long <- df_long %>%
   mutate(Group = case_when(
@@ -338,7 +343,7 @@ df_long_plot <- df_long[df_long$Value %in% c("Yes","Optional"),]
 ### Version 4 - Visual version enhanced --------------------------------------------
 
 
-svg("./figures/summary_deconvolution_method_heatmap.svg",height = 11, width=30)
+svg("../figures/summary_deconvolution_method_heatmap.svg",height = 11, width=30)
 
 ggplot(df_long_plot, aes(x = Method.name, y = Variable, fill = Value)) +
   geom_tile(color = "white", width = 0.4, height = 0.9) + # Adds a border between tiles
@@ -360,7 +365,7 @@ dev.off()
 ### Version 5- Per item short ---------------------------
 
 table1_cat <- table1
-table1_cat$Ref_cat <- recode(table1_cat$Reference.based...Reference.free, 
+table1_cat$Ref_cat <- recode(table1_cat$Reference.based_Reference.free, 
                                                                 "Reference-based" = "Yes", 
                                                                 "Reference-free" = "No",
                                                                 "Both" = "Both")
@@ -386,7 +391,7 @@ table1_long$Value<- ifelse(table1_long$Value =="No ", "No", table1_long$Value)
 table1_long$Value <- factor(table1_long$Value, levels=c("Yes", "No", "Optional", "Both"))
 
 
-svg("./figures/summary_deconvolution_method.svg",height = 20, width=7)
+svg("../figures/summary_deconvolution_method.svg",height = 20, width=7)
 # Plot the dot plot with separate columns for each variable (Image, ST.coordinates, Reference.based.free)
 ggplot(table1_long, aes(x = Variable, y = Method.name)) +
   geom_point(aes(color = Value), size = 6, shape = 16) +  # Use dots with colors
@@ -424,11 +429,11 @@ ggplot(table1_long, aes(x = Variable, y = Method.name)) +
     line = element_blank()
   )
 dev.off()
-ggsave("./figures/summary_deconvolution_method.png", plot=last_plot(), height = 15, width=5, dpi=)
+ggsave("../figures/summary_deconvolution_method.png", plot=last_plot(), height = 15, width=5, dpi=)
 
 ## Table 2- Data Synergy ---------------------------
 
-selected.cols2 <- c("Method.name", "Category", "Reference.based...Reference.free", #overall
+selected.cols2 <- c("Method.name", "Category", "Reference.based_Reference.free", #overall
                     "Reference", #single-cell data used
                     "ST.coordinates", "ST.coordinates.integration" , #coordinates
                     "Image", "Image.integration" #image, 
@@ -437,10 +442,10 @@ selected.cols2 <- c("Method.name", "Category", "Reference.based...Reference.free
 table2 <- deconvolution_review[, selected.cols2]
 
 # create new groups for data combinaison: sc alone, sc+coord, sc+image, sc+ etc. (how many can I spots?)
-table2$group1 <- apply(table2[,c("Reference.based...Reference.free", "ST.coordinates","Image")], 1, function(row) paste(row, collapse = "_"))
+table2$group1 <- apply(table2[,c("Reference.based_Reference.free", "ST.coordinates","Image")], 1, function(row) paste(row, collapse = "_"))
 
 # factor by data combinaison
-table2$Reference.based...Reference.free <- factor(table2$Reference.based...Reference.free, levels= c("Reference-based", "Reference-free", "Both"))
+table2$Reference.based_Reference.free <- factor(table2$Reference.based_Reference.free, levels= c("Reference-based", "Reference-free", "Both"))
 table2$ST.coordinates <- factor(table2$ST.coordinates, levels= c("No", "Optional", "Yes"))
 table2$Image <- factor(table2$Image, levels= c("No", "No ", "Optional", "Yes"))
 
@@ -455,10 +460,10 @@ freq_cat <- freq_cat[order(-freq_cat$Freq),]
 table2$Category <- factor(table2$Category, levels = freq_cat$Var1)
 
 # order
-table2 <- table2[order(table2$Reference.based...Reference.free,table2$ST.coordinates, table2$Image,table2$Reference,table2$Category),]
+table2 <- table2[order(table2$Reference.based_Reference.free,table2$ST.coordinates, table2$Image,table2$Reference,table2$Category),]
 
 #then reoder columns 
-table2 <- table2[c("Reference.based...Reference.free","ST.coordinates","Image","Reference","Category","Method.name", 
+table2 <- table2[c("Reference.based_Reference.free","ST.coordinates","Image","Reference","Category","Method.name", 
                    "ST.coordinates.integration","Image.integration")]
                        
 # save as excel for futher processing 
@@ -494,7 +499,7 @@ df_long_for_plot$Methods <- factor(df_long_for_plot$Methods, levels=methods_orde
 
 pal_benchmark <- c(wes_palette("Royal1")[2], wes_palette("Royal2")[5])
 
-svg("./figures/benchmark_studies.svg",height = 5, width=20)
+svg("../figures/benchmark_studies.svg",height = 5, width=20)
 ggplot(df_long_for_plot, aes(x = Methods, y = Study, fill = Present)) +
   geom_tile(color = "white", width = 0.9, height = 0.9) + # Adds a border between tiles
   scale_fill_manual(values = c("Yes" = "#74A089", "No" = "#C93312")) + # Set Yes to green, No to red
@@ -505,4 +510,4 @@ ggplot(df_long_for_plot, aes(x = Methods, y = Study, fill = Present)) +
   scale_x_discrete(position = "top")
 dev.off()
 
-ggsave("./figures/summary_benchmark.png", plot=last_plot(), height = 5, width=20, dpi=300)
+ggsave("../figures/summary_benchmark.png", plot=last_plot(), height = 5, width=20, dpi=300)
