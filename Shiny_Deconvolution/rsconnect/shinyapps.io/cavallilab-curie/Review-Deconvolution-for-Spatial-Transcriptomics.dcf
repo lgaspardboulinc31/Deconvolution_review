@@ -1,0 +1,10 @@
+name: Review-Deconvolution-for-Spatial-Transcriptomics
+title:
+username: cavallilab-curie
+account: cavallilab-curie
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14244953
+bundleId: 9943363
+url: https://cavallilab-curie.shinyapps.io/Review-Deconvolution-for-Spatial-Transcriptomics/
+version: 1

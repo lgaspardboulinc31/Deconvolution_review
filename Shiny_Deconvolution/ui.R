@@ -15,8 +15,30 @@ ui <- fluidPage(
     # Unit name and link
     tags$div(
       style = "text-align: left;",
-      tags$h4("U1331 - Computational Oncology", style = "margin: 0;"),
-      tags$a(href = "https://curie.fr/unite/u1331", "https://curie.fr/unite/u1331", target = "_blank", style = "font-size: 16px;")
+      
+      tags$h4(
+        tags$a(href = "https://institut-curie.org/unit/u1331", 
+               "U1331 - Computational Oncology Lab", 
+               target = "_blank", 
+               style = "text-decoration: none; color: inherit;"),
+        style = "margin: 0;"
+      ),
+      
+      tags$h5(
+        tags$a(href = "https://institut-curie.org/team/cavalli", 
+               "Computational Biology and Integrative Genomics Team", 
+               target = "_blank", 
+               style = "text-decoration: none; color: #ef7d04ff;"),
+        style = "margin: 0;"
+      ),
+      
+      tags$h5(
+        tags$a(href = "https://institut-curie.org/team/barillot", 
+               "Computational System Biology of Cancer Team", 
+               target = "_blank", 
+               style = "text-decoration: none; color: #ef7d04ff;"),
+        style = "margin: 0;"
+      )
     )
   ),
   
@@ -25,7 +47,7 @@ ui <- fluidPage(
   
   titlePanel("Deconvolution toolbox for spatial transcriptomics"),
   
-  p("This table serves as a supplementary resource to the review ",strong('"The expanding toolbox of cell-type deconvolution for spatial transcriptomics"'),em("(Gaspard-Boulinc, L., Gortana, L. et al., Nature Reviews Genetics, in revision)"), 
+  p("This table serves as a supplementary resource to the review ",strong('"Cell-type deconvolution methods for spatial transcriptomics"'),em("(Gaspard-Boulinc, L., Gortana, L. et al., Nature Reviews Genetics, in print)"), 
   " providing detailed information on the specific methods discussed. 
     It allows you to navigate through various methods, exploring their distinct characteristics and features. 
     Use this interactive table to delve deeper into the nuances of each method and enhance your understanding of the review's content. You can ",strong("filter based on 6 criteria"), "and display the 31 items reported for each methods. It is also possible to ",strong("click on a row"), "to display all the method's information below the table.",
@@ -33,18 +55,18 @@ ui <- fluidPage(
   ),
   
   p(
-    "If you would like to add your recently developed methods, you can fill this form ", 
-    tags$a(href = "https://forms.gle/fuUDhgMrfYvY4uQXA", "here", target = "_blank"), 
+    "If you would like us to add your recently developed methods, you can fill this form ", 
+    tags$a(href = "https://forms.gle/fuUDhgMrfYvY4uQXA", "here", target = "_blank", style="color: #ef7d04ff;"), 
     ". If you have any question regarding the details, feel free to contact us at ", 
-    tags$a(href = "mailto:lucie.gaspard-boulinc@curie.fr", "lucie.gaspard-boulinc[at]curie.fr", target = "_blank"), 
+    tags$a(href = "mailto:lucie.gaspard-boulinc@curie.fr", "lucie.gaspard-boulinc[at]curie.fr", target = "_blank", style="color: #ef7d04ff;"), 
     " and ", 
-    tags$a(href = "mailto:luca.gortana@curie.fr", "luca.gortana[at]curie.fr", target = "_blank"), ".",
+    tags$a(href = "mailto:luca.gortana@curie.fr", "luca.gortana[at]curie.fr", target = "_blank", style="color: #ef7d04ff;"), ".",
     class = "intro-paragraph", style = "font-size: 18px;"
   ),
   
   
   sidebarLayout(
-    sidebarPanel(width = 2,
+    sidebarPanel(width = 3, #2
                  
                  div(
                    style = "margin-top: 20px; padding: 10px; border-top: 2px solid #007bff; border-radius: 5px;",
@@ -97,7 +119,7 @@ ui <- fluidPage(
                  
                  
     ),
-    mainPanel(width = 10,
+    mainPanel(width = 9,
               selectInput("n_rows", "Show ... entries", choices =  c("5"=5, "15"=15, "30"=30, "45"=45, "All"=-1)),
               
               

@@ -13,7 +13,7 @@ server <- function(input, output, session) {
   # Load data
   
   data <- reactive({
-    df <- read.csv(file_path, sep = ";", fileEncoding = "UTF-8")
+    df <- read.csv(file_path, sep = ";", fileEncoding = "UTF-8", check.names = FALSE)
     
     # Format columns with clickable links
     ## For code
@@ -27,7 +27,7 @@ server <- function(input, output, session) {
         )
       }
     }
-    df <- df[order(df$Method.name),]
+    df <- df[order(df$`Method name`),]
     df
   })
   
@@ -35,11 +35,11 @@ server <- function(input, output, session) {
   observe({
     df <- data()
     updateSelectInput(session, "RefValue", 
-                      choices = c("All", unique(df$Reference.based_Reference.free)))
+                      choices = c("All", unique(df$`Reference-based_Reference-free`)))
     updateSelectInput(session, "CategoryValue", 
                       choices = c("All", unique(as.character(df$Category))))
     updateSelectInput(session, "CoordValue", 
-                      choices = c("All", unique(df$ST.coordinates)))
+                      choices = c("All", unique(df$`ST coordinates`)))
     updateSelectInput(session, "ImgValue", 
                       choices = c("All", unique(df$Image)))
   })
@@ -49,21 +49,21 @@ server <- function(input, output, session) {
     df <- data()
     checkboxGroupInput("columns", "Select columns to display:",
                        choices = c("All",colnames(df)),
-                       selected = c("Method.name", "Reference.based_Reference.free", "ST.coordinates", "Image",
-                                    "Programming.language", "Code"))
+                       selected = c("Method name", "Reference-based_Reference-free", "ST coordinates", "Image",
+                                    "Programming language", "Code"))
   })
   
   # Reactive for filtering data based on user inputs
   filteredData <- reactive({
     df <- data()
     if (input$RefValue != "All") {
-      df <- df[df$Reference.based_Reference.free %in% c(input$RefValue, "Both"), ]
+      df <- df[df$`Reference-based_Reference-free` %in% c(input$RefValue, "Both"), ]
     }
     if (input$CategoryValue != "All") {
       df <- df[df$Category == input$CategoryValue, ]
     }
     if (input$CoordValue != "All") {
-      df <- df[df$ST.coordinates %in% c(input$CoordValue, "Optional"), ]
+      df <- df[df$`ST coordinates` %in% c(input$CoordValue, "Optional"), ]
     }
     if (input$ImgValue != "All") {
       df <- df[df$Image %in% c(input$ImgValue, "Optional"), ]
@@ -74,7 +74,7 @@ server <- function(input, output, session) {
     }
     if (input$ProgrValue != "All") {
       selected_option <- input$ProgrValue
-      df <- df[grepl(selected_option, df$Programming.language), ]
+      df <- df[grepl(selected_option, df$`Programming language`), ]
     }
     df
   })
@@ -124,7 +124,7 @@ server <- function(input, output, session) {
     if (is.null(row)) return(NULL)
     
     # Get the method name for the title
-    method_name <- if ("Method.name" %in% names(row)) row[["Method.name"]] else "Details"
+    method_name <- if ("Method name" %in% names(row)) row[["Method name"]] else "Details"
     
     
     vertical_layout <- lapply(names(row), function(col_name) {
