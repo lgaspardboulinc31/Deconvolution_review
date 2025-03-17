@@ -27,7 +27,7 @@ Our Shiny Application is available at: https://cavallilab-curie.shinyapps.io/Rev
 ```
 ## Getting Started
 
-If you are interested to run the ShinyApp locally, download `the Shiny_Deconvolution` directory along the Rproj file. 
+If you are interested to run the ShinyApp locally, download the `Shiny_Deconvolution` directory containing the Rproj file and the app code. 
 
 ## Citation 
 
