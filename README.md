@@ -1,4 +1,4 @@
-# The expanding toolbox of deconvolution methods for spatial transcriptomics
+# Cell-type deconvolution methods for spatial transcriptomics
 
 This repository contains the code used to generate the figures and the application for the review titled "Cell-type deconvolution methods for spatial transcriptomics."
 
