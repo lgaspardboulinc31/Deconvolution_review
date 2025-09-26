@@ -1,8 +1,8 @@
 # Cell-type deconvolution methods for spatial transcriptomics
 
-This repository contains the code used to generate the figures and the application for the review titled "Cell-type deconvolution methods for spatial transcriptomics."
+This repository contains the code used to generate the figures and the application for the review titled "Cell-type deconvolution methods for spatial transcriptomics." (*Nature Reviews Genetics*, 2025)
 
-The manuscript can be found here (pending).
+The manuscript can be found here: https://www.nature.com/articles/s41576-025-00845-y
 
 Our Shiny Application is available at: https://cavallilab-curie.shinyapps.io/Review-Deconvolution-for-Spatial-Transcriptomics/
 
@@ -31,4 +31,4 @@ If you are interested to run the ShinyApp locally, download the `Shiny_Deconvolu
 
 ## Citation 
 
-Gaspard-Boulinc LC., Gortana L. *et al.*, **Cell-type deconvolution for spatial transcriptomicss**, *in print*
+Gaspard-Boulinc, L.C., Gortana, L., et al. Cell-type deconvolution methods for spatial transcriptomics. Nat Rev Genet (2025). https://doi.org/10.1038/s41576-025-00845-y
