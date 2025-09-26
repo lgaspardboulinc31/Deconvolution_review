@@ -1,6 +1,6 @@
 # Cell-type deconvolution methods for spatial transcriptomics
 
-This repository contains the code used to generate the figures and the application for the review titled "Cell-type deconvolution methods for spatial transcriptomics." (*Nature Reviews Genetics*, 2025)
+This repository contains the code used to generate the figures and the application for the review titled **Cell-type deconvolution methods for spatial transcriptomics.** (*Nature Reviews Genetics*, 2025)
 
 The manuscript can be found here: https://www.nature.com/articles/s41576-025-00845-y
 
